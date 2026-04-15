@@ -109,7 +109,7 @@ export default function ExpenseForm({ walletAddress, onAddExpense }) {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setIsOpen(true)}
-          className="w-full glass-card glass-card-hover rounded-2xl p-5 flex items-center justify-center gap-3 text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer group"
+          className="w-full glass-card glass-card-hover rounded-2xl py-6 px-5 flex items-center justify-center gap-3 text-emerald-400 hover:text-emerald-300 transition-all duration-300 cursor-pointer group hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] border border-emerald-500/10 hover:border-emerald-500/30"
         >
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
             <Plus className="w-5 h-5" />
@@ -256,7 +256,7 @@ export default function ExpenseForm({ walletAddress, onAddExpense }) {
               type="submit"
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-dark-950 font-semibold text-sm transition-all glow-green cursor-pointer"
+              className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-dark-950 font-bold text-base transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] border border-emerald-400/30 hover:border-emerald-300/60 cursor-pointer"
             >
               Add Expense
             </motion.button>

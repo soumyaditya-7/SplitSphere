@@ -50,11 +50,11 @@ export default function HeroSection({ onConnectClick }) {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={onConnectClick}
-        className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-dark-950 font-bold text-lg transition-all glow-green-strong cursor-pointer"
+        className="flex items-center gap-3 px-10 py-5 rounded-[1.25rem] bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-dark-950 font-bold text-xl transition-all glow-green-strong cursor-pointer shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] border border-emerald-400/30 hover:border-emerald-300/60"
       >
-        <Wallet className="w-5 h-5" />
+        <Wallet className="w-6 h-6" />
         Connect Freighter
-        <ArrowRight className="w-5 h-5" />
+        <ArrowRight className="w-6 h-6" />
       </motion.button>
 
       {/* Features grid */}
@@ -62,7 +62,7 @@ export default function HeroSection({ onConnectClick }) {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
-        className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-16 max-w-2xl w-full"
+        className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-32 max-w-3xl w-full"
       >
         {[
           {
