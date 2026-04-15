@@ -67,9 +67,9 @@ export default function Navbar({ walletAddress, setWalletAddress }) {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
-      className="sticky top-0 z-50 glass-card border-b border-emerald-500/10"
+      className="w-full sticky top-0 z-50 glass-card border-b border-emerald-500/10"
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <motion.div
           className="flex items-center gap-2.5 cursor-pointer"

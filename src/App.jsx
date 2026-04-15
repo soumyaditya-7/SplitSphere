@@ -78,15 +78,15 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-dark-950 bg-grid">
+    <div className="min-h-screen w-full bg-dark-950 bg-grid">
       <Navbar
         walletAddress={walletAddress}
         setWalletAddress={setWalletAddress}
       />
 
-      <main className="px-4 sm:px-6 py-8">
+      <main className="w-full px-4 sm:px-6 py-8">
         {walletAddress ? (
-          <div className="max-w-2xl mx-auto space-y-6">
+          <div className="w-full max-w-2xl mx-auto space-y-6">
             <BalanceCard
               ref={balanceRef}
               walletAddress={walletAddress}
