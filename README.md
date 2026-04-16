@@ -1,184 +1,249 @@
-# ⚡ StellarSplit
+# ⚡ SplitSphere
 
-**StellarSplit** is a decentralized expense-splitting application built natively on the Stellar blockchain. It allows users to collectively track shared bills and seamlessly settle debts peer-to-peer using XLM, removing any need for bank intermediaries or delayed fiat transfers.
+**SplitSphere** is a decentralized **Instant Split & Pay** application built natively on the Stellar blockchain. It allows users to calculate their share of a shared bill and instantly settle it peer-to-peer on-chain using XLM — no banks, no delays, no intermediaries.
 
-🔗 **Live Application:** [SplitSphere on Vercel](https://split-sphere-f2k6.vercel.app/)
+🔗 **Live Application:** [SplitSphere on Vercel](https://split-sphere-f2k6.vercel.app/)  
+📂 **GitHub Repository:** [github.com/soumyaditya-7/SplitSphere](https://github.com/soumyaditya-7/SplitSphere)
 
 ---
 
 ## 🏗 System Design & Architecture
 
-StellarSplit follows a sleek, single-page application (SPA) architecture combined with a purely decentralized on-chain settlement mechanism.
+SplitSphere follows a single-page application (SPA) architecture combined with a purely decentralized on-chain settlement mechanism via Soroban smart contracts on the Stellar Testnet.
 
 ### Technology Stack
-- **Frontend Framework:** React (Vite)
-- **Styling & UI:** Tailwind CSS v4 alongside Framer Motion for high-fidelity animations, a glassmorphic aesthetic, and a fully responsive grid.
-- **Blockchain Connectivity:** 
-  - `@stellar/freighter-api`: Handles secure authentication and prompt-based transaction signing.
-  - `@stellar/stellar-sdk`: Utilized for network communication, parsing Stellar Public Keys, building XDR transaction envelopes, and querying the Testnet Horizon server API.
-  - **Soroban RPC**: Smart contract interaction via `soroban-testnet.stellar.org` for on-chain expense recording.
-- **Multi-Wallet Support:** Custom wallet abstraction layer supporting Freighter, xBull, Albedo, LOBSTR, Hana, and Rabet.
-- **Smart Contracts:** Soroban (Rust) — `SplitTracker` contract deployed on Stellar Testnet.
-- **Data Architecture:** Hybrid — localStorage for local state + Soroban smart contract for on-chain expense verification.
-- **Hosting / Deployments:** Deployed on Vercel.
+
+| Layer | Technology |
+|---|---|
+| Frontend Framework | React (Vite) |
+| Styling & Animations | Vanilla CSS + Framer Motion |
+| Blockchain SDK | `@stellar/stellar-sdk` |
+| Wallet Integration | `@stellar/freighter-api` + Custom Multi-Wallet Abstraction |
+| Smart Contracts | Soroban (Rust) on Stellar Testnet |
+| On-Chain RPC | `soroban-testnet.stellar.org` |
+| Hosting | Vercel |
 
 ---
 
-## ⚪️ Level 1 - White Belt Progress
+## ⚪️ Level 1 — White Belt
 
-This project satisfies the requirements for the **Level 1 - White Belt** Stellar dApp progression, focusing heavily on wallet connectivity, reading on-chain XLM balances, and executing direct raw transactions using the Stellar Testnet.
+This project satisfies all **Level 1 - White Belt** requirements focused on wallet connectivity, reading live XLM balances, and executing transactions on Testnet.
 
 ### 1. Wallet Setup & Connection
-Full integration with Freighter Wallet on the Stellar Testnet. The dApp securely facilitates the handshake and seamlessly handles user disconnection and session continuity.
 
-> **Wallet Connected State:**
+Full integration with the Freighter Wallet on Stellar Testnet. The dApp securely handles the handshake, connection state, user disconnection, and session persistence.
+
+> **Wallet Connected:**
 >
 > ![Wallet Connected](./screenshots/connect%20wallet.png)
 
-### 2. Balance Handling
-Instantly hits the Horizon Testnet upon connection to scrape the current account state and displays the live XLM balance clearly within the main dashboard.
+### 2. Live Balance Handling
+
+Upon connection, the app immediately queries the Horizon Testnet API to fetch and display the live XLM balance inside the main dashboard.
 
 > **Balance Displayed:**
 >
 > ![Balance Displayed](./screenshots/balance.png)
 
 ### 3. Transaction Flow & User Feedback
-Users can add an expense split math dynamically. Clicking "Pay" initiates a direct payment through the `@stellar/stellar-sdk`.
-- We successfully build a payment transaction via the Freighter interface.
-- Toast notifications and UI logic act instantly upon `.sendPayment()` promise resolution.
-- It displays the successful block completion, complete with a direct outbound link referencing that specific transaction hash on Stellar Expert.
+
+Users can calculate a split and immediately send the payment to a receiver. Clicking **"Settle Payment Now"** triggers the full flow:
+- Builds a payment transaction via `@stellar/stellar-sdk`
+- Prompts the user to sign via their connected wallet
+- Submits to the Stellar Testnet
+- Displays a live status tracker (Building → Signing → Submitting → Success/Failed)
+- Shows the transaction hash with a direct link to [Stellar Expert](https://stellar.expert)
+
+> **Payment Settled On-Chain:**
+>
+> ![Payment Done](./screenshots/payment%20done.png)
 
 ---
 
-## 🟡 Level 2 - Yellow Belt Progress
+## 🟡 Level 2 — Yellow Belt
 
-This project satisfies the requirements for the **Level 2 - Yellow Belt** Stellar dApp progression, introducing multi-wallet support, Soroban smart contract deployment, and comprehensive error handling.
+This project satisfies all **Level 2 - Yellow Belt** requirements, introducing multi-wallet support, Soroban smart contract deployment, real-time event handling, and comprehensive error management.
 
-### 1. Multi-Wallet Integration (StellarWalletsKit-style)
+---
 
-A custom wallet abstraction layer that presents a premium modal with **6 Stellar wallet options**:
-- 🚀 **Freighter** — Browser extension wallet
-- 🐂 **xBull** — Web & extension wallet
-- 🌟 **Albedo** — Web-based signer
-- 🦞 **LOBSTR** — Mobile & web wallet
-- 🌸 **Hana** — Wallet extension
-- 🔷 **Rabet** — Browser extension
+### 1. Multi-Wallet Integration
 
-> **Wallet Options Available:**
+A custom wallet abstraction layer presents a premium animated modal with **6 Stellar wallet options**:
+
+| Wallet | Type |
+|---|---|
+| 🚀 **Freighter** | Browser Extension |
+| 🐂 **xBull** | Web & Extension |
+| 🌟 **Albedo** | Web-based Signer |
+| 🦞 **LOBSTR** | Mobile & Web |
+| 🌸 **Hana** | Browser Extension |
+| 🔷 **Rabet** | Browser Extension |
+
+The abstraction layer in `src/services/stellar.js` routes connections, signing, and error handling per wallet type — mimicking the `StellarWalletsKit` pattern.
+
+> **Wallet Options Modal:**
 >
-> ![Wallet Selection Modal](./screenshots/wallet_modal.png)
+> ![Wallet Selection Modal](./screenshots/connect%20wallet.png)
 
-### 2. Smart Contract (Soroban) — Deployed on Testnet
+---
 
-**Contract Address:** `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`
+### 2. Smart Contract — Deployed on Testnet
 
-The `SplitTracker` Soroban contract provides on-chain expense recording with three functions:
-- `record_expense(payer, description, amount, participant_count)` — Records an expense on-chain
-- `get_expense(expense_id)` — Reads an expense record
-- `get_expense_count()` — Returns total recorded expenses
+**Contract ID:** `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`
+
+> 🔗 [View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC)
+
+The `SplitTracker` Soroban contract (written in Rust) provides:
+
+| Function | Description |
+|---|---|
+| `record_expense(payer, description, debts)` | Records a split payment on-chain with per-wallet debt mapping |
+| `settle_debt(debtor, creditor, token, amount)` | Executes on-chain token transfer to settle a recorded debt |
+| `get_expense(id)` | Reads a stored expense record |
+| `get_expense_count(address)` | Returns total recorded expenses for a payer |
 
 Contract source: [`contracts/split_tracker/src/lib.rs`](./contracts/split_tracker/src/lib.rs)
 
-> **Contract Explorer:** [View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC)
+---
 
 ### 3. Contract Called from Frontend
 
-The app integrates with the deployed contract directly from the UI:
-- **Record On-Chain** button per expense that writes to the Soroban contract
-- **On-Chain Activity Feed** showing recorded transactions with Stellar Expert links
-- **Contract Dashboard** displaying deployed contract address and on-chain expense count
-- Full transaction lifecycle: Build → Simulate → Sign → Submit → Poll
+The `ContractPanel` component in `src/components/ContractPanel.jsx` integrates directly with the deployed contract:
 
-### 4. Three Error Types Handled
+- **"Record On-Chain"** button per payment — writes the split details to the Soroban contract via `recordExpenseOnChain()`
+- **On-Chain Activity Feed** — displays all contract-recorded payments with tx hash links to Stellar Expert
+- **On-Chain Expense Count** — live counter queried from the contract via `get_expense_count()`
+- Full transaction lifecycle: **Build → Simulate → Sign → Submit → Poll for result**
 
-| Error Type | Trigger | User Message |
-|---|---|---|
-| `WalletNotFoundError` | No wallet extension detected | "No compatible wallet found. Please install Freighter..." |
-| `TransactionRejectedError` | User rejected signing prompt | "You rejected the transaction. No funds were sent." |
-| `InsufficientBalanceError` | Not enough XLM for payment | "Insufficient balance. You need X XLM but only have Y XLM." |
+Implementation in `src/services/soroban.js`:
+```js
+// Records a finalized split on-chain
+export async function recordExpenseOnChain(walletAddress, signTransaction, description, debtsObj, onStatusChange)
 
-Each error type has a color-coded animated banner (orange/red/yellow).
-
-### 5. Transaction Status Tracking
-
-Real-time transaction lifecycle UI showing:
-- **Building** → **Signing** → **Submitting** → **Success/Failed**
-- Animated step indicators with pulse effects
-- On success: transaction hash with Stellar Expert link
-- On failure: error details with descriptive messages
-
-> **Transaction Hash (Contract Call):** *(Populated after first contract interaction)*
+// Executes on-chain settlement transfer
+export async function executeSettlementOnChain(senderPublicKey, signTransaction, receiver, amount, onStatusChange)
+```
 
 ---
 
-## 🚀 Setup Instructions (Local Development)
+### 4. Three Error Types Handled
 
-To run StellarSplit on your local machine:
+All errors are handled via a custom typed error system in `src/services/errors.js`:
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/soumyaditya-7/SplitSphere.git
-   cd SplitSphere
-   ```
+| Error Class | When Triggered | User-Facing Message |
+|---|---|---|
+| `WalletNotFoundError` | No wallet extension detected | *"No compatible wallet found. Please install Freighter..."* |
+| `TransactionRejectedError` | User dismisses or rejects the signing prompt | *"You rejected the transaction. No funds were sent."* |
+| `InsufficientBalanceError` | Account balance too low for the requested payment | *"Insufficient balance. You need X XLM but only have Y XLM."* |
 
-2. **Install dependencies:**
-   Make sure you have Node installed, then run:
-   ```bash
-   npm install
-   ```
+Each error type renders as a distinct animated banner (`src/components/ErrorBanner.jsx`) with color-coded indicators (orange for wallet issues, red for rejection, yellow for balance).
 
-3. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
+---
 
-4. **Testing the dApp:**
-   - Open `http://localhost:5173/` in your browser.
-   - Ensure you have the [Freighter Browser Extension](https://www.freighter.app/) installed.
-   - Switch your Freighter network to **Testnet** and ensure you have testnet XLM funded (you can fund easily via the internal Freighter testnet faucet tool).
+### 5. Transaction Status Tracking
 
-### Smart Contract Deployment (Optional)
+Real-time transaction lifecycle UI in `src/components/TransactionStatus.jsx`:
 
-To deploy the SplitTracker contract yourself:
+```
+🔵 Building  →  🟡 Signing  →  🟠 Submitting  →  ✅ Success / ❌ Failed
+```
 
-1. **Install prerequisites:**
-   ```bash
-   # Install Rust
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-   rustup target add wasm32-unknown-unknown
-   
-   # Install Stellar CLI
-   cargo install --locked stellar-cli --features opt
-   ```
+- Animated step indicators with pulse effects for the active step
+- On **Success**: transaction hash displayed with a clickable Stellar Expert link
+- On **Failure**: parsed error message with descriptive actionable feedback
 
-2. **Build & deploy:**
-   ```bash
-   cd contracts/split_tracker
-   stellar contract build
-   stellar contract deploy \
-     --wasm target/wasm32-unknown-unknown/release/split_tracker.wasm \
-     --source <YOUR_IDENTITY> \
-     --network testnet
-   ```
+---
 
-3. **Update the contract ID** in `src/services/soroban.js` with the returned address.
+### 6. Real-Time Data Synchronization
+
+- **Live Balance Refresh** after every settled payment via `BalanceCard.jsx`
+- **On-Chain Count Sync** — the contract's expense counter refreshes immediately after each successful `record_expense` call
+- **Payment Activity Feed** — local state is updated in real time and data is persisted to `localStorage` for cross-session continuity
+
+---
+
+## 🚀 Setup Instructions
+
+### Prerequisites
+- Node.js v18+
+- [Freighter Wallet Extension](https://www.freighter.app/) (switched to **Testnet**)
+- Testnet XLM (fund via Freighter's built-in faucet)
+
+### 1. Clone and Install
+
+```bash
+git clone https://github.com/soumyaditya-7/SplitSphere.git
+cd SplitSphere
+npm install
+```
+
+### 2. Run Locally
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+### 3. Use the App
+
+1. Click **Connect Wallet** and choose your wallet (Freighter recommended for Testnet)
+2. In the **Instant Split & Pay** form:
+   - Enter the **description** (e.g. *Dinner at Pizza Hub*)
+   - Enter the **Total Bill** in XLM
+   - Choose how many **ways to split** it (1–10)
+   - The app **automatically calculates your exact share**
+3. Paste the **receiver's Stellar public key** (starting with `G...`)
+4. Click **Settle Payment Now** — your wallet prompts you to sign and the XLM goes directly on-chain
+5. Optionally click **Record On-Chain** in the Smart Contract panel to log the split to the Soroban contract
+
+---
+
+### Smart Contract Deployment (Optional / Self-Host)
+
+To deploy your own instance of the `SplitTracker` contract:
+
+**Prerequisites:**
+```bash
+# Install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+rustup target add wasm32-unknown-unknown
+
+# Install Stellar CLI
+cargo install --locked stellar-cli --features opt
+```
+
+**Build & Deploy:**
+```bash
+cd contracts/split_tracker
+stellar contract build
+stellar contract deploy \
+  --wasm target/wasm32-unknown-unknown/release/split_tracker.wasm \
+  --source <YOUR_IDENTITY> \
+  --network testnet
+```
+
+Update the returned Contract ID in `src/services/soroban.js` line 11:
+```js
+export const CONTRACT_ID = 'YOUR_NEW_CONTRACT_ID_HERE';
+```
 
 ---
 
 ## 📋 Yellow Belt Submission Checklist
 
-- [x] Public GitHub repository
-- [x] README with setup instructions
+- [x] Public GitHub repository — [github.com/soumyaditya-7/SplitSphere](https://github.com/soumyaditya-7/SplitSphere)
+- [x] README with full setup instructions
 - [x] Minimum 2+ meaningful commits
-- [x] Screenshot: wallet options available (multi-wallet modal)
-- [x] Deployed contract address: `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`
-- [x] Transaction hash of contract call: *(verifiable on Stellar Explorer after interaction)*
-- [x] 3 error types handled (WalletNotFound, TransactionRejected, InsufficientBalance)
-- [x] Contract deployed on testnet
-- [x] Contract called from frontend
-- [x] Transaction status visible (Building → Signing → Submitting → Success/Failed)
-- [ ] Live demo link (deployed on Vercel)
+- [x] **Live demo link** — [split-sphere-f2k6.vercel.app](https://split-sphere-f2k6.vercel.app/)
+- [x] **Screenshot: wallet options available** — See `screenshots/connect wallet.png`
+- [x] **Deployed contract address** — `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`
+- [x] **Transaction hash of a contract call** — Verifiable on [Stellar Expert](https://stellar.expert/explorer/testnet/contract/CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC)
+- [x] **3 error types handled** — `WalletNotFoundError`, `TransactionRejectedError`, `InsufficientBalanceError`
+- [x] **Contract deployed on testnet** — Soroban Testnet
+- [x] **Contract called from frontend** — `recordExpenseOnChain()` & `executeSettlementOnChain()`
+- [x] **Transaction status visible** — Building → Signing → Submitting → Success/Failed
 
 ---
 
-> Built with ⚡ by Soumyaditya
+> Built with ⚡ by Soumyaditya on Stellar Testnet
