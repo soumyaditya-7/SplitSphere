@@ -13,4 +13,9 @@ export default defineConfig({
       buffer: 'buffer',
     },
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+  },
 })
