@@ -11,14 +11,18 @@ Stellar Split is a blockchain-based expense splitting app that allows users to s
 - [x] Add expense (manual public key entry)
 - [x] Debt calculation (split equally)
 - [x] Send XLM (settle debt)
-- [ ] Smart contract integration
+- [x] Multi-wallet support (Freighter, xBull, Albedo, LOBSTR, Hana, Rabet)
+- [x] Smart contract integration (Soroban)
+- [x] Error handling (3 types: WalletNotFound, TransactionRejected, InsufficientBalance)
+- [x] Transaction status tracking (Building → Signing → Submitting → Success/Failed)
+- [x] On-chain expense recording
 - [ ] Expense history (persistent)
 - [ ] Dashboard
 - [ ] Real-time updates
 
 ## 🥋 Levels Progress
 
-### ⚪️ Level 1 (White Belt)
+### ⚪️ Level 1 (White Belt) ✅
 
 - [x] Wallet connect
 - [x] Wallet disconnect
@@ -28,13 +32,16 @@ Stellar Split is a blockchain-based expense splitting app that allows users to s
 - [x] XLM transaction send
 - [x] Transaction feedback UI (success/fail + hash link)
 
-### 🟡 Level 2
+### 🟡 Level 2 (Yellow Belt) ✅
 
-- [ ] Multi-wallet support (StellarWalletsKit)
-- [ ] Contract deployed (Soroban)
-- [ ] Contract interaction
-- [ ] Debt tracking on-chain
-- [ ] Error handling (wallet missing, rejected tx, insufficient funds)
+- [x] Multi-wallet support (custom wallet modal with 6 wallets)
+- [x] Contract deployed (Soroban SplitTracker)
+- [x] Contract interaction (record_expense, get_expense, get_expense_count)
+- [x] Debt tracking on-chain
+- [x] Error handling (wallet missing, rejected tx, insufficient funds)
+- [x] Transaction status UI (Building → Signing → Submitting → Success/Failed)
+- [x] Contract dashboard panel
+- [x] On-chain activity feed
 
 ### 🟠 Level 3
 
@@ -54,30 +61,32 @@ Stellar Split is a blockchain-based expense splitting app that allows users to s
 
 ## 📊 Current Status
 
-**Level 1 Complete** ✅
+**Level 2 Complete** ✅
 
-All core features for Level 1 are implemented:
-- Freighter wallet connect/disconnect with auto-reconnect
-- XLM balance fetching with live refresh
-- Expense creation with manual Stellar public key entry
-- Equal split calculation with live preview
-- XLM payment transactions signed via Freighter
-- Transaction success/failure feedback with StellarExpert links
-- State persistence via localStorage
+All core features for Level 2 are implemented:
+- Multi-wallet selection modal (Freighter, xBull, Albedo, LOBSTR, Hana, Rabet)
+- Soroban SplitTracker contract deployed on testnet
+- Contract called from frontend (record, read, count)
+- 3 error types with color-coded UI banners
+- Real-time transaction status tracking with animated step indicators
+- Contract dashboard with on-chain expense count
+- Activity feed of recorded on-chain transactions
 - Premium green & black UI with glassmorphism and animations
 
 ## 🧱 Next Steps
 
-1. Initialize git repository and push to GitHub
-2. Create meaningful commit history (5+ commits)
-3. Begin Level 2: Multi-wallet support & Soroban integration
+1. Deploy updated version to Vercel
+2. Take screenshots for README (wallet modal, contract panel)
+3. Create meaningful git commits
+4. Begin Level 3: Dashboard & testing
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: React (Vite)
 - **Styling**: Tailwind CSS v4 + Framer Motion
-- **Blockchain**: Stellar Testnet (Horizon API)
-- **Wallet**: Freighter (`@stellar/freighter-api`)
+- **Blockchain**: Stellar Testnet (Horizon API + Soroban RPC)
+- **Wallet**: Multi-wallet (Freighter, xBull, Albedo, etc.)
+- **Smart Contract**: Soroban (Rust)
 - **SDK**: `@stellar/stellar-sdk`
 - **Notifications**: react-hot-toast
 - **Icons**: Lucide React

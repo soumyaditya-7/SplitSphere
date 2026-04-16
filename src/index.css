@@ -99,3 +99,89 @@ body {
     linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
   background-size: 60px 60px;
 }
+
+/* ─── Yellow Belt: Transaction status step animations ─── */
+@keyframes tx-step-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 12px 4px rgba(16, 185, 129, 0.15);
+    transform: scale(1.05);
+  }
+}
+
+.tx-step-active {
+  animation: tx-step-pulse 1.5s ease-in-out infinite;
+}
+
+/* ─── Yellow Belt: Error banner slide animation ─── */
+@keyframes slide-in-from-top {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.error-slide-in {
+  animation: slide-in-from-top 0.3s ease-out;
+}
+
+/* ─── Yellow Belt: Wallet modal overlay ─── */
+@keyframes modal-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-content-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ─── Yellow Belt: Contract panel shimmer ─── */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer-loading {
+  background: linear-gradient(
+    90deg,
+    rgba(17, 17, 24, 0.4) 25%,
+    rgba(16, 185, 129, 0.06) 50%,
+    rgba(17, 17, 24, 0.4) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* ─── Yellow Belt: Activity feed dot pulse ─── */
+@keyframes activity-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+
+.activity-dot-pulse {
+  animation: activity-dot 2s ease-in-out infinite;
+}

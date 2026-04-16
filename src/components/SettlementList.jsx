@@ -1,4 +1,5 @@
 import { useState } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight,
@@ -9,34 +10,43 @@ import {
   Receipt,
   Trash2,
 } from 'lucide-react';
-import { sendPayment, truncateAddress, getExplorerLink } from '../services/stellar';
+import { truncateAddress } from '../services/stellar';
+import { executeSettlementOnChain } from '../services/soroban';
+import { TX_STATUS, parseError } from '../services/errors';
+import TransactionStatus from './TransactionStatus';
+import ErrorBanner from './ErrorBanner';
 import toast from 'react-hot-toast';
 
 export default function SettlementList({
   expenses,
   walletAddress,
+  signTransaction,
   onSettled,
   onDeleteExpense,
   onRefreshBalance,
 }) {
   const [settling, setSettling] = useState(null); // expense id being settled
-  const [txResult, setTxResult] = useState(null);
+  const [txStatus, setTxStatus] = useState(TX_STATUS.IDLE);
+  const [txHash, setTxHash] = useState(null);
+  const [txError, setTxError] = useState(null);
+  const [error, setError] = useState(null);
 
   // Calculate debts from expenses
   const debts = [];
   expenses.forEach((expense) => {
-    expense.participants.forEach((participant) => {
-      if (!expense.settled?.[participant]) {
+    if (!expense.debtsObj) return;
+    for (const [participant, amount] of Object.entries(expense.debtsObj)) {
+      if (!expense.settled?.[participant] && amount > 0) {
         debts.push({
           expenseId: expense.id,
           description: expense.description,
           from: participant,
           to: expense.payer,
-          amount: expense.sharePerPerson,
+          amount: amount,
           timestamp: expense.timestamp,
         });
       }
-    });
+    }
   });
 
   // For the connected wallet: what others owe you, and what you owe others
@@ -46,23 +56,31 @@ export default function SettlementList({
   const handleSettle = async (debt) => {
     const settleKey = `${debt.expenseId}-${debt.from}`;
     setSettling(settleKey);
-    setTxResult(null);
+    setTxStatus(TX_STATUS.IDLE);
+    setTxHash(null);
+    setTxError(null);
+    setError(null);
 
     try {
-      const result = await sendPayment(
+      const result = await executeSettlementOnChain(
         walletAddress,
+        signTransaction,
         debt.to,
-        debt.amount.toFixed(7),
-        `Split: ${debt.description.slice(0, 20)}`
+        debt.amount,
+        setTxStatus
       );
 
-      setTxResult({ ...result, settleKey });
+      setTxHash(result.hash);
+      setTxStatus(TX_STATUS.SUCCESS);
       onSettled(debt.expenseId, walletAddress);
       onRefreshBalance();
       toast.success('Payment sent successfully!');
     } catch (err) {
-      toast.error(err.message || 'Transaction failed');
-      setTxResult({ success: false, error: err.message, settleKey });
+      const parsed = parseError(err);
+      setError(parsed);
+      setTxError(parsed.userMessage || parsed.message);
+      setTxStatus(TX_STATUS.FAILED);
+      toast.error(parsed.userMessage || 'Transaction failed');
     } finally {
       setSettling(null);
     }
@@ -77,6 +95,24 @@ export default function SettlementList({
       transition={{ duration: 0.5, delay: 0.3 }}
       className="space-y-6"
     >
+      {/* Error Banner */}
+      <ErrorBanner error={error} onDismiss={() => setError(null)} />
+
+      {/* Transaction Status */}
+      {txStatus !== TX_STATUS.IDLE && (
+        <TransactionStatus
+          status={txStatus}
+          txHash={txHash}
+          error={txError}
+          label="Payment"
+          onReset={() => {
+            setTxStatus(TX_STATUS.IDLE);
+            setTxHash(null);
+            setTxError(null);
+          }}
+        />
+      )}
+
       {/* Expenses List */}
       <div className="glass-card rounded-2xl p-6">
         <div className="flex items-center gap-2 mb-5">
@@ -148,8 +184,6 @@ export default function SettlementList({
             {youOwe.map((debt) => {
               const settleKey = `${debt.expenseId}-${debt.from}`;
               const isSettling = settling === settleKey;
-              const result =
-                txResult?.settleKey === settleKey ? txResult : null;
 
               return (
                 <motion.div
@@ -193,44 +227,6 @@ export default function SettlementList({
                   <p className="text-xs text-gray-600 mt-2">
                     For: {debt.description}
                   </p>
-
-                  {/* Transaction Result */}
-                  {result && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={`mt-3 p-3 rounded-lg text-sm ${
-                        result.success
-                          ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                          : 'bg-red-500/10 border border-red-500/20 text-red-400'
-                      }`}
-                    >
-                      {result.success ? (
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Check className="w-4 h-4" />
-                            <span>Transaction successful!</span>
-                          </div>
-                          <a
-                            href={getExplorerLink(result.hash)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 hover:text-emerald-300 transition-colors"
-                          >
-                            <span className="font-mono text-xs">
-                              {result.hash.slice(0, 8)}...
-                            </span>
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <AlertCircle className="w-4 h-4" />
-                          <span>{result.error || 'Transaction failed'}</span>
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
                 </motion.div>
               );
             })}

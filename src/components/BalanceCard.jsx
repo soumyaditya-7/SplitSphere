@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { RefreshCw, TrendingUp, Copy, ExternalLink } from 'lucide-react';
 import { fetchBalance, truncateAddress } from '../services/stellar';

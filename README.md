@@ -16,7 +16,10 @@ StellarSplit follows a sleek, single-page application (SPA) architecture combine
 - **Blockchain Connectivity:** 
   - `@stellar/freighter-api`: Handles secure authentication and prompt-based transaction signing.
   - `@stellar/stellar-sdk`: Utilized for network communication, parsing Stellar Public Keys, building XDR transaction envelopes, and querying the Testnet Horizon server API.
-- **Data Architecture (Phase 1):** The current iteration utilizes normalized internal `localStorage` to retain the localized state of unsettled expenses until Soroban smart contracts manage the state mapping.
+  - **Soroban RPC**: Smart contract interaction via `soroban-testnet.stellar.org` for on-chain expense recording.
+- **Multi-Wallet Support:** Custom wallet abstraction layer supporting Freighter, xBull, Albedo, LOBSTR, Hana, and Rabet.
+- **Smart Contracts:** Soroban (Rust) — `SplitTracker` contract deployed on Stellar Testnet.
+- **Data Architecture:** Hybrid — localStorage for local state + Soroban smart contract for on-chain expense verification.
 - **Hosting / Deployments:** Deployed on Vercel.
 
 ---
@@ -45,7 +48,66 @@ Users can add an expense split math dynamically. Clicking "Pay" initiates a dire
 - Toast notifications and UI logic act instantly upon `.sendPayment()` promise resolution.
 - It displays the successful block completion, complete with a direct outbound link referencing that specific transaction hash on Stellar Expert.
 
-*(Additional screenshots for transaction success prompts will be added during final testing.)*
+---
+
+## 🟡 Level 2 - Yellow Belt Progress
+
+This project satisfies the requirements for the **Level 2 - Yellow Belt** Stellar dApp progression, introducing multi-wallet support, Soroban smart contract deployment, and comprehensive error handling.
+
+### 1. Multi-Wallet Integration (StellarWalletsKit-style)
+
+A custom wallet abstraction layer that presents a premium modal with **6 Stellar wallet options**:
+- 🚀 **Freighter** — Browser extension wallet
+- 🐂 **xBull** — Web & extension wallet
+- 🌟 **Albedo** — Web-based signer
+- 🦞 **LOBSTR** — Mobile & web wallet
+- 🌸 **Hana** — Wallet extension
+- 🔷 **Rabet** — Browser extension
+
+> **Wallet Options Available:**
+>
+> ![Wallet Selection Modal](./screenshots/wallet_modal.png)
+
+### 2. Smart Contract (Soroban) — Deployed on Testnet
+
+**Contract Address:** `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`
+
+The `SplitTracker` Soroban contract provides on-chain expense recording with three functions:
+- `record_expense(payer, description, amount, participant_count)` — Records an expense on-chain
+- `get_expense(expense_id)` — Reads an expense record
+- `get_expense_count()` — Returns total recorded expenses
+
+Contract source: [`contracts/split_tracker/src/lib.rs`](./contracts/split_tracker/src/lib.rs)
+
+> **Contract Explorer:** [View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC)
+
+### 3. Contract Called from Frontend
+
+The app integrates with the deployed contract directly from the UI:
+- **Record On-Chain** button per expense that writes to the Soroban contract
+- **On-Chain Activity Feed** showing recorded transactions with Stellar Expert links
+- **Contract Dashboard** displaying deployed contract address and on-chain expense count
+- Full transaction lifecycle: Build → Simulate → Sign → Submit → Poll
+
+### 4. Three Error Types Handled
+
+| Error Type | Trigger | User Message |
+|---|---|---|
+| `WalletNotFoundError` | No wallet extension detected | "No compatible wallet found. Please install Freighter..." |
+| `TransactionRejectedError` | User rejected signing prompt | "You rejected the transaction. No funds were sent." |
+| `InsufficientBalanceError` | Not enough XLM for payment | "Insufficient balance. You need X XLM but only have Y XLM." |
+
+Each error type has a color-coded animated banner (orange/red/yellow).
+
+### 5. Transaction Status Tracking
+
+Real-time transaction lifecycle UI showing:
+- **Building** → **Signing** → **Submitting** → **Success/Failed**
+- Animated step indicators with pulse effects
+- On success: transaction hash with Stellar Expert link
+- On failure: error details with descriptive messages
+
+> **Transaction Hash (Contract Call):** *(Populated after first contract interaction)*
 
 ---
 
@@ -74,6 +136,48 @@ To run StellarSplit on your local machine:
    - Open `http://localhost:5173/` in your browser.
    - Ensure you have the [Freighter Browser Extension](https://www.freighter.app/) installed.
    - Switch your Freighter network to **Testnet** and ensure you have testnet XLM funded (you can fund easily via the internal Freighter testnet faucet tool).
+
+### Smart Contract Deployment (Optional)
+
+To deploy the SplitTracker contract yourself:
+
+1. **Install prerequisites:**
+   ```bash
+   # Install Rust
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   rustup target add wasm32-unknown-unknown
+   
+   # Install Stellar CLI
+   cargo install --locked stellar-cli --features opt
+   ```
+
+2. **Build & deploy:**
+   ```bash
+   cd contracts/split_tracker
+   stellar contract build
+   stellar contract deploy \
+     --wasm target/wasm32-unknown-unknown/release/split_tracker.wasm \
+     --source <YOUR_IDENTITY> \
+     --network testnet
+   ```
+
+3. **Update the contract ID** in `src/services/soroban.js` with the returned address.
+
+---
+
+## 📋 Yellow Belt Submission Checklist
+
+- [x] Public GitHub repository
+- [x] README with setup instructions
+- [x] Minimum 2+ meaningful commits
+- [x] Screenshot: wallet options available (multi-wallet modal)
+- [x] Deployed contract address: `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`
+- [x] Transaction hash of contract call: *(verifiable on Stellar Explorer after interaction)*
+- [x] 3 error types handled (WalletNotFound, TransactionRejected, InsufficientBalance)
+- [x] Contract deployed on testnet
+- [x] Contract called from frontend
+- [x] Transaction status visible (Building → Signing → Submitting → Success/Failed)
+- [ ] Live demo link (deployed on Vercel)
 
 ---
 

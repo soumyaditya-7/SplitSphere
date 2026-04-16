@@ -3,12 +3,13 @@ import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
 import BalanceCard from './components/BalanceCard';
 import ExpenseForm from './components/ExpenseForm';
-import SettlementList from './components/SettlementList';
-import { connectWallet, isFreighterInstalled } from './services/stellar';
-import toast from 'react-hot-toast';
+import ContractPanel from './components/ContractPanel';
+import { signTransactionWithWallet } from './services/stellar';
+
 
 function App() {
   const [walletAddress, setWalletAddress] = useState(null);
+  const [connectedWallet, setConnectedWallet] = useState(null);
   const [expenses, setExpenses] = useState(() => {
     const saved = localStorage.getItem('stellarSplit_expenses');
     return saved ? JSON.parse(saved) : [];
@@ -29,59 +30,32 @@ function App() {
     [expenses, saveExpenses]
   );
 
-  const handleSettled = useCallback(
-    (expenseId, participant) => {
-      const updated = expenses.map((exp) => {
-        if (exp.id === expenseId) {
-          return {
-            ...exp,
-            settled: { ...exp.settled, [participant]: true },
-          };
-        }
-        return exp;
-      });
-      saveExpenses(updated);
-    },
-    [expenses, saveExpenses]
-  );
 
-  const handleDeleteExpense = useCallback(
-    (expenseId) => {
-      const updated = expenses.filter((exp) => exp.id !== expenseId);
-      saveExpenses(updated);
-      toast.success('Expense deleted');
-    },
-    [expenses, saveExpenses]
-  );
 
-  const handleHeroConnect = useCallback(async () => {
-    const installed = await isFreighterInstalled();
-    if (!installed) {
-      toast.error('Freighter wallet not detected. Please install it first.');
-      window.open('https://www.freighter.app/', '_blank');
-      return;
-    }
-    try {
-      const pubKey = await connectWallet();
-      setWalletAddress(pubKey);
-      localStorage.setItem('stellarSplit_wallet', pubKey);
-      toast.success('Wallet connected!');
-    } catch (err) {
-      toast.error(err.message || 'Failed to connect wallet');
-    }
+
+
+  // Open wallet modal from hero
+  const handleHeroConnect = useCallback(() => {
+    // Trigger the navbar's modal by simulating a click
+    // We'll handle this by lifting the modal state
+    document.querySelector('[data-connect-wallet]')?.click();
   }, []);
 
-  const handleRefreshBalance = useCallback(() => {
-    // Trigger a re-render of BalanceCard by updating a key or similar
-    // The BalanceCard will refetch on its own via its effect
-    setWalletAddress((prev) => prev); // no-op to keep it simple; BalanceCard uses its own effect
-  }, []);
+  // Create a sign function bound to the current wallet
+  const signTransaction = useCallback(
+    async (xdr, opts) => {
+      return signTransactionWithWallet(connectedWallet || 'freighter', xdr, opts);
+    },
+    [connectedWallet]
+  );
 
   return (
     <div className="min-h-screen w-full bg-dark-950 bg-grid">
       <Navbar
         walletAddress={walletAddress}
         setWalletAddress={setWalletAddress}
+        connectedWallet={connectedWallet}
+        setConnectedWallet={setConnectedWallet}
       />
 
       <main className="w-full px-4 sm:px-6 py-8">
@@ -93,14 +67,14 @@ function App() {
             />
             <ExpenseForm
               walletAddress={walletAddress}
-              onAddExpense={handleAddExpense}
+              connectedWallet={connectedWallet}
+              signTransaction={signTransaction}
+              onPaymentComplete={handleAddExpense}
             />
-            <SettlementList
-              expenses={expenses}
+            <ContractPanel
               walletAddress={walletAddress}
-              onSettled={handleSettled}
-              onDeleteExpense={handleDeleteExpense}
-              onRefreshBalance={handleRefreshBalance}
+              signTransaction={signTransaction}
+              expenses={expenses}
             />
           </div>
         ) : (
@@ -120,7 +94,7 @@ function App() {
           >
             Stellar Network
           </a>{' '}
-          · Testnet
+          · Soroban Smart Contracts · Testnet
         </p>
       </footer>
     </div>
