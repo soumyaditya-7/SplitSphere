@@ -3,7 +3,7 @@
  * Tests for: Error handling, Split calculation, Address validation, TX status, Caching
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   WalletNotFoundError,
   TransactionRejectedError,

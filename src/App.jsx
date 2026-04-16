@@ -4,6 +4,8 @@ import HeroSection from './components/HeroSection';
 import BalanceCard from './components/BalanceCard';
 import ExpenseForm from './components/ExpenseForm';
 import ContractPanel from './components/ContractPanel';
+import LiveActivityFeed from './components/LiveActivityFeed';
+import { useEventStream } from './hooks/useEventStream';
 import { signTransactionWithWallet } from './services/stellar';
 
 
@@ -14,7 +16,14 @@ function App() {
     const saved = localStorage.getItem('stellarSplit_expenses');
     return saved ? JSON.parse(saved) : [];
   });
+  const [liveEvents, setLiveEvents] = useState([]);
   const balanceRef = useRef(null);
+
+  // Real-time event stream
+  const handleNewTx = useCallback((tx) => {
+    setLiveEvents(prev => [tx, ...prev].slice(0, 20));
+  }, []);
+  const { isStreaming } = useEventStream(walletAddress, handleNewTx);
 
   // Persist expenses to localStorage
   const saveExpenses = useCallback((newExpenses) => {
@@ -70,6 +79,10 @@ function App() {
               connectedWallet={connectedWallet}
               signTransaction={signTransaction}
               onPaymentComplete={handleAddExpense}
+            />
+            <LiveActivityFeed
+              events={liveEvents}
+              isStreaming={isStreaming}
             />
             <ContractPanel
               walletAddress={walletAddress}

@@ -165,10 +165,10 @@ impl SplitTrackerContract {
 mod test {
     use super::*;
     use soroban_sdk::testutils::Address as _;
-    use soroban_sdk::Env;
+    use soroban_sdk::{Env, vec};
 
     #[test]
-    fn test_record_and_get_expense() {
+    fn test_record_expense_and_get_count() {
         let env = Env::default();
         env.mock_all_auths();
 
@@ -176,25 +176,21 @@ mod test {
         let client = SplitTrackerContractClient::new(&env, &contract_id);
 
         let payer = Address::generate(&env);
+        let debtor = Address::generate(&env);
         let description = String::from_str(&env, "Test Dinner");
+        let debts = vec![&env, (debtor.clone(), 1000000_i128)];
 
-        // Record an expense
-        let id = client.record_expense(&payer, &description, &1000000_i128, &3_u32);
+        // Record an expense with the new Vec<(Address, i128)> API
+        let id = client.record_expense(&payer, &description, &debts);
         assert_eq!(id, 1);
 
-        // Get the expense
-        let expense = client.get_expense(&1_u64);
-        assert_eq!(expense.id, 1);
-        assert_eq!(expense.amount, 1000000_i128);
-        assert_eq!(expense.participant_count, 3);
-
-        // Check count
+        // Check expense count incremented
         let count = client.get_expense_count();
         assert_eq!(count, 1);
     }
 
     #[test]
-    fn test_multiple_expenses() {
+    fn test_get_expense_returns_correct_data() {
         let env = Env::default();
         env.mock_all_auths();
 
@@ -202,22 +198,64 @@ mod test {
         let client = SplitTrackerContractClient::new(&env, &contract_id);
 
         let payer = Address::generate(&env);
+        let description = String::from_str(&env, "Lunch Split");
+        let debts = soroban_sdk::Vec::new(&env);
+
+        client.record_expense(&payer, &description, &debts);
+        let expense = client.get_expense(&1_u64);
+
+        assert_eq!(expense.id, 1);
+        assert_eq!(expense.payer, payer);
+    }
+
+    #[test]
+    fn test_multiple_expenses_increment_count() {
+        let env = Env::default();
+        env.mock_all_auths();
+
+        let contract_id = env.register(SplitTrackerContract, ());
+        let client = SplitTrackerContractClient::new(&env, &contract_id);
+
+        let payer = Address::generate(&env);
+        let empty_debts = soroban_sdk::Vec::new(&env);
 
         let id1 = client.record_expense(
             &payer,
             &String::from_str(&env, "Lunch"),
-            &500000_i128,
-            &2_u32
+            &empty_debts,
         );
         let id2 = client.record_expense(
             &payer,
             &String::from_str(&env, "Dinner"),
-            &1500000_i128,
-            &4_u32
+            &empty_debts,
         );
 
         assert_eq!(id1, 1);
         assert_eq!(id2, 2);
         assert_eq!(client.get_expense_count(), 2);
     }
+
+    #[test]
+    fn test_debt_tracking() {
+        let env = Env::default();
+        env.mock_all_auths();
+
+        let contract_id = env.register(SplitTrackerContract, ());
+        let client = SplitTrackerContractClient::new(&env, &contract_id);
+
+        let payer = Address::generate(&env);
+        let debtor = Address::generate(&env);
+
+        let debts = vec![&env, (debtor.clone(), 5000000_i128)];
+        client.record_expense(
+            &payer,
+            &String::from_str(&env, "Coffee"),
+            &debts,
+        );
+
+        // Check debt was recorded correctly
+        let debt = client.get_debt(&debtor, &payer);
+        assert_eq!(debt, 5000000_i128);
+    }
 }
+
