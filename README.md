@@ -1,5 +1,7 @@
 # ⚡ SplitSphere
 
+[![CI/CD Status](https://github.com/soumyaditya-7/SplitSphere/actions/workflows/ci.yml/badge.svg)](https://github.com/soumyaditya-7/SplitSphere/actions)
+
 **SplitSphere** is a decentralized **Instant Split & Pay** application built natively on the Stellar blockchain. It allows users to calculate their share of a shared bill and instantly settle it peer-to-peer on-chain using XLM — no banks, no delays, no intermediaries.
 
 🔗 **Live Application:** [SplitSphere on Vercel](https://split-sphere-f2k6.vercel.app/)  
@@ -454,7 +456,7 @@ The dApp has been optimized for any screen size, taking a mobile-first approach.
 - [x] **CI/CD running** — GitHub actions for linting, testing, and building.
 - [x] **Mobile responsive** — Optimized UI/UX across all device types.
 - [ ] **Screenshot: mobile responsive view** — *(capture and save as `mobile_responsive.png`)*
-- [ ] **Screenshot or badge: CI/CD pipeline running** — Status badge is present, but please also add `cicd_pipeline.png` to screenshots.
+- [x] **Screenshot or badge: CI/CD pipeline running** — Status badge is present at the top of the README and in the CI/CD section.
 - [x] **Contract addresses and transaction hash** — Testnet contract ID documented. *(Add tx hash above)*
 - [N/A] **Custom token or pool deployed** — using Native Token for splits.
 
