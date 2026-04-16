@@ -255,4 +255,144 @@ export const CONTRACT_ID = 'YOUR_NEW_CONTRACT_ID_HERE';
 
 ---
 
+## 🟠 Level 3 — Orange Belt
+
+This project satisfies all **Level 3 - Orange Belt** requirements, completing the mini-dApp with a full test suite, loading states, basic caching, and complete documentation.
+
+---
+
+### 1. Mini-dApp — Fully Functional
+
+SplitSphere is a complete end-to-end decentralized app:
+
+- **Connect** any of 6 Stellar wallets via an animated wallet selection modal
+- **Calculate** your exact XLM share of a shared bill instantly
+- **Settle** — click one button to sign and send the split directly on-chain
+- **Record** — log the settlement immutably on the deployed Soroban smart contract
+- **Track** — full transaction status lifecycle: Building → Signing → Submitting → Success/Failed
+- **Persist** — all payment history cached locally and synced across sessions
+
+---
+
+### 2. Loading States & Progress Indicators
+
+Three types of loading/progress UI are implemented:
+
+| Component | Loading State Shown |
+|---|---|
+| `TransactionStatus.jsx` | Full animated step tracker (Building → Signing → Submitting → Success/Failed) |
+| `BalanceCard.jsx` | Spinning loader while fetching XLM balance from Horizon |
+| `ContractPanel.jsx` | `RefreshCw` spin animation while querying on-chain expense count |
+| `ExpenseForm.jsx` | "Processing..." button state with `Loader2` spinner while tx is in-flight |
+
+---
+
+### 3. Basic Caching Implementation
+
+Caching is implemented at two levels:
+
+**1. LocalStorage cache for payment history:**
+```js
+// Save to cache
+localStorage.setItem('stellarSplit_expenses', JSON.stringify(expenses));
+
+// Restore from cache on app mount
+const saved = localStorage.getItem('stellarSplit_expenses');
+const expenses = saved ? JSON.parse(saved) : [];
+```
+
+**2. LocalStorage cache for on-chain recordings:**
+```js
+localStorage.setItem('stellarSplit_recordings', JSON.stringify(recordings));
+```
+
+This ensures that payment history and contract recordings survive page refreshes and cross-session continuity without any backend.
+
+---
+
+### 4. Test Suite — 33 Tests Passing
+
+Tests are written with **Vitest** and **@testing-library/jest-dom**, covering all critical app logic.
+
+**Run tests:**
+```bash
+npm test
+```
+
+**Test groups and coverage:**
+
+| Test Group | Tests | What's Covered |
+|---|---|---|
+| `WalletNotFoundError` | 3 | Error type, userMessage, custom message |
+| `TransactionRejectedError` | 2 | Error type, no-funds message |
+| `InsufficientBalanceError` | 2 | Amount storage, message formatting |
+| `parseError` | 5 | Auto-detection of all 3 error types, fallback |
+| `TX_STATUS enum` | 2 | All 6 states present, correct values |
+| `Split calculation logic` | 6 | Even splits, fractions, decimals, zero edge case |
+| `Stellar address validation` | 5 | Valid G-address, wrong prefix, empty, truncated, lowercase |
+| `Expense caching (localStorage)` | 4 | Save, retrieve, null check, overwrite |
+| `Loading & progress states` | 4 | IDLE start, progression, FAILED state, terminal state check |
+
+**Test output:**
+```
+ RUN  v4.1.4
+
+ ✓ src/test/splitsphere.test.js (33 tests) 12ms
+
+ Test Files  1 passed (1)
+      Tests  33 passed (33)
+   Start at  01:36:17
+   Duration  3.10s
+```
+
+> **Screenshot: Test Output**
+>
+> ![Test Output](./screenshots/tests_passing.png)
+
+> *Run `npm test` in your terminal to see the full output above.*
+
+---
+
+### 5. Demo Video
+
+> 🎥 **Demo Video (1 minute):** *(Upload your recording to YouTube/Loom and paste the link here)*
+>
+> The video demonstrates:
+> 1. Connecting the Freighter wallet
+> 2. Entering a bill amount and splitting it 3 ways
+> 3. Pasting a receiver address and clicking "Settle Payment Now"
+> 4. Approving in Freighter → transaction confirming on-chain
+> 5. The confirmed tx hash linking to Stellar Expert
+
+---
+
+### 6. Complete Documentation
+
+| Documentation | Location |
+|---|---|
+| Setup instructions | [Setup Instructions](#-setup-instructions) |
+| Smart contract source | [`contracts/split_tracker/src/lib.rs`](./contracts/split_tracker/src/lib.rs) |
+| Service layer | [`src/services/stellar.js`](./src/services/stellar.js), [`src/services/soroban.js`](./src/services/soroban.js) |
+| Error handling | [`src/services/errors.js`](./src/services/errors.js) |
+| Test suite | [`src/test/splitsphere.test.js`](./src/test/splitsphere.test.js) |
+| Architecture overview | [System Design & Architecture](#-system-design--architecture) |
+
+---
+
+## 📋 Orange Belt Submission Checklist
+
+- [x] **Public GitHub repository** — [github.com/soumyaditya-7/SplitSphere](https://github.com/soumyaditya-7/SplitSphere)
+- [x] **README with complete documentation** — this document
+- [x] **Minimum 3+ meaningful commits** — verified on GitHub
+- [x] **Live demo link** — [split-sphere-f2k6.vercel.app](https://split-sphere-f2k6.vercel.app/)
+- [x] **Mini-dApp fully functional** — Instant Split & Pay with Soroban contract integration
+- [x] **Loading states and progress indicators** — Transaction status tracker, balance loader, contract count refresh
+- [x] **Basic caching implemented** — localStorage for expenses and on-chain recordings
+- [x] **Minimum 3 tests passing** — ✅ **33 tests passing** across 9 test groups
+- [x] **Screenshot: test output showing 3+ tests passing** — See test output above
+- [ ] **Demo video link (1-minute)** — *(record and add your video link here)*
+
+---
+
 > Built with ⚡ by Soumyaditya on Stellar Testnet
+
