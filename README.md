@@ -83,7 +83,7 @@ The abstraction layer in `src/services/stellar.js` routes connections, signing, 
 
 > **Wallet Options Available:**
 >
-> ![Wallet Options](./screenshots/connect_wallet.png)
+> ![Wallet Options](./screenshots/multichain.png)
 
 ---
 
