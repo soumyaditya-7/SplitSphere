@@ -345,26 +345,11 @@ npm test
    Duration  3.10s
 ```
 
-> **Screenshot: Test Output**
+> **Screenshot: Test Output (33 tests passing)**
 >
-> ![Test Output](./screenshots/tests_passing.png)
+> ![Test Output](./screenshots/test.png)
 
-> *Run `npm test` in your terminal to see the full output above.*
 
----
-
-### 5. Demo Video
-
-> 🎥 **Demo Video (1 minute):** *(Upload your recording to YouTube/Loom and paste the link here)*
->
-> The video demonstrates:
-> 1. Connecting the Freighter wallet
-> 2. Entering a bill amount and splitting it 3 ways
-> 3. Pasting a receiver address and clicking "Settle Payment Now"
-> 4. Approving in Freighter → transaction confirming on-chain
-> 5. The confirmed tx hash linking to Stellar Expert
-
----
 
 ### 6. Complete Documentation
 
@@ -389,8 +374,7 @@ npm test
 - [x] **Loading states and progress indicators** — Transaction status tracker, balance loader, contract count refresh
 - [x] **Basic caching implemented** — localStorage for expenses and on-chain recordings
 - [x] **Minimum 3 tests passing** — ✅ **33 tests passing** across 9 test groups
-- [x] **Screenshot: test output showing 3+ tests passing** — See test output above
-- [ ] **Demo video link (1-minute)** — *(record and add your video link here)*
+- [x] **Screenshot: test output showing 3+ tests passing** — see `test.png` above
 
 ---
 
