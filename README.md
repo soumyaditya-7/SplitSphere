@@ -35,7 +35,7 @@ Full integration with the Freighter Wallet on Stellar Testnet. The dApp securely
 
 > **Wallet Connected:**
 >
-> ![Wallet Connected](./screenshots/connect%20wallet.png)
+> ![Wallet Connected](<./screenshots/connect wallet.png>)
 
 ### 2. Live Balance Handling
 
@@ -56,7 +56,7 @@ Users calculate their split share of a bill and click **"Settle Payment Now"** t
 
 > **Payment Successfully Settled On-Chain:**
 >
-> ![Payment Done](./screenshots/payment%20done.png)
+> ![Payment Done](<./screenshots/payment done.png>)
 
 ---
 
@@ -83,7 +83,7 @@ The abstraction layer in `src/services/stellar.js` routes connections, signing, 
 
 > **Wallet Options Available:**
 >
-> ![Wallet Options](./screenshots/connect%20wallet.png)
+> ![Wallet Options](<./screenshots/connect wallet.png>)
 
 ---
 
@@ -127,7 +127,7 @@ executeSettlementOnChain(senderPublicKey, signTransaction, receiver, amount, onS
 
 > **Payment Recorded & Confirmed:**
 >
-> ![Payment Done](./screenshots/payment%20done.png)
+> ![Payment Done](<./screenshots/payment done.png>)
 
 ---
 
@@ -159,7 +159,7 @@ Real-time transaction lifecycle UI via `src/components/TransactionStatus.jsx`:
 
 > **Confirmed Transaction On-Chain:**
 >
-> ![Payment Confirmed](./screenshots/payment%20done.png)
+> ![Payment Confirmed](<./screenshots/payment done.png>)
 
 ---
 
