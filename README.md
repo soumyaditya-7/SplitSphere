@@ -424,11 +424,10 @@ The pipeline ensures code quality and production readiness by:
 - Executing the 33-test Vitest suite
 - Verifying the production build succeeds
 
+**Live Pipeline Status:** 
 [![CI/CD Status](https://github.com/soumyaditya-7/SplitSphere/actions/workflows/ci.yml/badge.svg)](https://github.com/soumyaditya-7/SplitSphere/actions)
 
-> **Screenshot: CI/CD Pipeline Passing**
->
-> ![CI/CD Pipeline](./screenshots/cicd_pipeline.png)
+*(The badge above indicates whether the latest deployment has passed ✅ or failed ❌)*
 
 ---
 
