@@ -57,9 +57,9 @@ export default function HeroSection({ onConnectClick }) {
           {/* Button inner glow ripple */}
           <span className="absolute inset-0 rounded-[1.25rem] overflow-hidden">
             <motion.span
-              className="absolute inset-0 bg-white/10 rounded-[1.25rem]"
-              animate={{ opacity: [0, 0.15, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute inset-0 bg-white/40"
+              animate={{ opacity: [0, 0.6, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             />
           </span>
           <Wallet className="w-6 h-6 relative z-10" />

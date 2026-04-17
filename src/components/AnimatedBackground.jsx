@@ -5,8 +5,8 @@ import { motion } from 'framer-motion';
 function Orb({ className, delay = 0, duration = 8 }) {
   return (
     <motion.div
-      className={`absolute rounded-full blur-[120px] opacity-20 pointer-events-none ${className}`}
-      animate={{ y: [0, -30, 0], scale: [1, 1.08, 1] }}
+      className={`absolute rounded-full blur-[90px] opacity-40 pointer-events-none ${className}`}
+      animate={{ y: [0, -30, 0], scale: [1, 1.1, 1] }}
       transition={{ duration, delay, repeat: Infinity, ease: 'easeInOut' }}
     />
   );
@@ -16,9 +16,9 @@ function Orb({ className, delay = 0, duration = 8 }) {
 function Particle({ x, y, delay, duration }) {
   return (
     <motion.div
-      className="absolute w-1 h-1 rounded-full bg-emerald-400/40"
+      className="absolute w-1.5 h-1.5 rounded-full bg-emerald-400/70 shadow-[0_0_8px_rgba(52,211,153,0.8)]"
       style={{ left: `${x}%`, top: `${y}%` }}
-      animate={{ opacity: [0, 1, 0], y: [0, -20, -40], scale: [0, 1, 0] }}
+      animate={{ opacity: [0, 1, 0], y: [0, -40, -80], scale: [0, 1.5, 0] }}
       transition={{ duration, delay, repeat: Infinity, ease: 'easeOut' }}
     />
   );
@@ -53,8 +53,8 @@ export default function AnimatedBackground() {
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(16,185,129,0.04) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(16,185,129,0.04) 1px, transparent 1px)
+            linear-gradient(rgba(16,185,129,0.12) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(16,185,129,0.12) 1px, transparent 1px)
           `,
           backgroundSize: '48px 48px',
         }}
@@ -75,8 +75,8 @@ export default function AnimatedBackground() {
 
       {/* ── Background: Horizontal scan line ── */}
       <motion.div
-        className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent pointer-events-none"
-        animate={{ top: ['10%', '90%', '10%'] }}
+        className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-400/80 to-transparent pointer-events-none shadow-[0_0_15px_rgba(52,211,153,0.5)]"
+        animate={{ top: ['0%', '100%', '0%'] }}
         transition={{ duration: 14, repeat: Infinity, ease: 'linear' }}
       />
     </div>
