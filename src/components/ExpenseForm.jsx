@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -8,6 +8,8 @@ import {
   Users,
   Loader2,
   Check,
+  UserPlus,
+  Trash2,
 } from 'lucide-react';
 import { isValidStellarAddress, sendPayment } from '../services/stellar';
 import { TX_STATUS, parseError } from '../services/errors';
@@ -19,66 +21,122 @@ export default function ExpenseForm({ walletAddress, connectedWallet, onPaymentC
   const [description, setDescription] = useState('');
   const [totalAmount, setTotalAmount] = useState('');
   const [splitWays, setSplitWays] = useState(2);
-  const [receiver, setReceiver] = useState('');
-  
+  // N-1 receiver fields: one slot per other person
+  const [receivers, setReceivers] = useState(['']);
+
   const [txStatus, setTxStatus] = useState(TX_STATUS.IDLE);
   const [txHash, setTxHash] = useState(null);
   const [txError, setTxError] = useState(null);
   const [error, setError] = useState(null);
+  const [currentPayment, setCurrentPayment] = useState(0); // which receiver is being paid
 
   const myShare = totalAmount && splitWays ? (parseFloat(totalAmount) / splitWays) : 0;
+  const receiverCount = splitWays - 1; // N-1 receivers
+
+  // Resize receivers array when splitWays changes
+  useEffect(() => {
+    setReceivers(prev => {
+      const next = Array.from({ length: receiverCount }, (_, i) => prev[i] ?? '');
+      return next;
+    });
+  }, [receiverCount]);
+
+  const updateReceiver = (index, value) => {
+    setReceivers(prev => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  };
 
   const handleSettle = async (e) => {
     e.preventDefault();
+
     if (!description.trim() || !totalAmount || myShare <= 0) {
       toast.error('Please enter valid amount and description');
       return;
     }
-    if (!isValidStellarAddress(receiver.trim())) {
-      toast.error('Invalid receiver address');
-      return;
-    }
-    if (receiver.trim() === walletAddress) {
-      toast.error('You cannot pay yourself');
-      return;
+
+    // Validate all receiver fields (only if splitWays > 1)
+    if (splitWays > 1) {
+      for (let i = 0; i < receivers.length; i++) {
+        const addr = receivers[i].trim();
+        if (!isValidStellarAddress(addr)) {
+          toast.error(`Receiver ${i + 1}: Invalid Stellar address`);
+          return;
+        }
+        if (addr === walletAddress) {
+          toast.error(`Receiver ${i + 1}: You cannot pay yourself`);
+          return;
+        }
+      }
+      // Check for duplicate receivers
+      const unique = new Set(receivers.map(r => r.trim()));
+      if (unique.size !== receivers.length) {
+        toast.error('Duplicate receiver addresses detected');
+        return;
+      }
     }
 
     setTxStatus(TX_STATUS.IDLE);
     setTxHash(null);
     setTxError(null);
     setError(null);
+    setCurrentPayment(0);
+
+    const amountStr = myShare.toFixed(7);
 
     try {
-      const amountStr = myShare.toFixed(7);
-      const result = await sendPayment(
-        walletAddress,
-        receiver.trim(),
-        amountStr,
-        `Split: ${description.slice(0, 20)}`,
-        connectedWallet || 'freighter',
-        setTxStatus
-      );
+      // eslint-disable-next-line react-hooks/purity
+      const baseTimestamp = Date.now();
 
-      setTxHash(result.hash);
+      // If split by 1 (just me), record expense without payment
+      if (splitWays === 1) {
+        onPaymentComplete({
+          id: baseTimestamp,
+          description,
+          totalAmount: parseFloat(totalAmount),
+          paidAmount: 0,
+          receiver: walletAddress,
+          txHash: null,
+          timestamp: new Date().toISOString(),
+        });
+        toast.success('Expense recorded!');
+        resetForm();
+        return;
+      }
+
+      let lastHash = null;
+
+      // Send one payment to each receiver sequentially
+      for (let i = 0; i < receivers.length; i++) {
+        setCurrentPayment(i + 1);
+        const result = await sendPayment(
+          walletAddress,
+          receivers[i].trim(),
+          amountStr,
+          `Split: ${description.slice(0, 20)}`,
+          connectedWallet || 'freighter',
+          setTxStatus
+        );
+        lastHash = result.hash;
+
+        onPaymentComplete({
+          id: baseTimestamp + i,
+          description,
+          totalAmount: parseFloat(totalAmount),
+          paidAmount: parseFloat(amountStr),
+          receiver: receivers[i].trim(),
+          txHash: result.hash,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      setTxHash(lastHash);
       setTxStatus(TX_STATUS.SUCCESS);
-      
-      onPaymentComplete({
-         id: Date.now(),
-         description,
-         totalAmount: parseFloat(totalAmount),
-         paidAmount: parseFloat(amountStr),
-         receiver: receiver.trim(),
-         txHash: result.hash,
-         timestamp: new Date().toISOString()
-      });
-      toast.success('Payment sent successfully!');
-      
-      // Reset form on success
-      setDescription('');
-      setTotalAmount('');
-      setReceiver('');
-      setSplitWays(2);
-      
+      toast.success(`All ${receivers.length} payment${receivers.length > 1 ? 's' : ''} sent!`);
+      resetForm();
+
     } catch (err) {
       const parsed = parseError(err);
       setError(parsed);
@@ -88,7 +146,20 @@ export default function ExpenseForm({ walletAddress, connectedWallet, onPaymentC
     }
   };
 
+  const resetForm = () => {
+    setDescription('');
+    setTotalAmount('');
+    setSplitWays(2);
+    setReceivers(['']);
+    setCurrentPayment(0);
+  };
+
   if (!walletAddress) return null;
+
+  const isProcessing =
+    txStatus === TX_STATUS.BUILDING ||
+    txStatus === TX_STATUS.SIGNING ||
+    txStatus === TX_STATUS.SUBMITTING;
 
   return (
     <motion.div
@@ -104,7 +175,7 @@ export default function ExpenseForm({ walletAddress, connectedWallet, onPaymentC
           status={txStatus}
           txHash={txHash}
           error={txError}
-          label="Payment"
+          label={currentPayment > 0 ? `Payment ${currentPayment}/${receiverCount}` : 'Payment'}
           onReset={() => {
             setTxStatus(TX_STATUS.IDLE);
             setTxHash(null);
@@ -116,10 +187,10 @@ export default function ExpenseForm({ walletAddress, connectedWallet, onPaymentC
       <form onSubmit={handleSettle} className="glass-card rounded-2xl p-6 space-y-5">
         <div className="flex items-center gap-2 mb-4">
           <Send className="w-5 h-5 text-emerald-400" />
-          <h2 className="text-lg font-semibold text-white">Instant Split & Pay</h2>
+          <h2 className="text-lg font-semibold text-white">Instant Split &amp; Pay</h2>
         </div>
 
-        {/* Description field */}
+        {/* Description */}
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-sm font-medium text-gray-400">
             <FileText className="w-4 h-4" />
@@ -153,7 +224,7 @@ export default function ExpenseForm({ walletAddress, connectedWallet, onPaymentC
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-400">
               <Users className="w-4 h-4" />
@@ -176,55 +247,118 @@ export default function ExpenseForm({ walletAddress, connectedWallet, onPaymentC
         {/* Summary Card */}
         <AnimatePresence>
           {myShare > 0 && (
-             <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-5 overflow-hidden"
-             >
-                <div className="flex flex-col items-center justify-center text-center">
-                   <p className="text-sm text-gray-400">Your Share to Pay</p>
-                   <p className="text-3xl font-bold text-emerald-400 mt-1">
-                     {myShare.toFixed(4)} <span className="text-sm text-gray-500">XLM</span>
-                   </p>
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-4 overflow-hidden"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500">Each person pays</p>
+                  <p className="text-2xl font-bold text-emerald-400 mt-0.5">
+                    {myShare.toFixed(4)} <span className="text-sm text-gray-500">XLM</span>
+                  </p>
                 </div>
-             </motion.div>
+                {splitWays > 1 && (
+                  <div className="text-right">
+                    <p className="text-xs text-gray-500">Receivers</p>
+                    <p className="text-2xl font-bold text-emerald-400 mt-0.5">
+                      {receiverCount} <span className="text-sm text-gray-500">people</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+              {splitWays > 1 && (
+                <p className="text-xs text-gray-600 mt-3 pt-3 border-t border-dark-600">
+                  You will send <span className="text-emerald-400 font-medium">{myShare.toFixed(4)} XLM</span> to each of the {receiverCount} receiver{receiverCount > 1 ? 's' : ''} below
+                </p>
+              )}
+            </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Receiver */}
-        <div className="space-y-2 pt-2">
-          <label className="flex items-center gap-2 text-sm font-medium text-gray-400">
-            <Send className="w-4 h-4" />
-            Send to Wallet Address
-          </label>
-          <input
-            type="text"
-            value={receiver}
-            onChange={(e) => setReceiver(e.target.value)}
-            placeholder="G... (Receiver's Public Key)"
-            className="w-full bg-dark-800 border border-dark-600 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all font-mono text-sm"
-            required
-          />
-        </div>
+        {/* Receiver Addresses — N-1 fields */}
+        <AnimatePresence mode="sync">
+          {splitWays > 1 && (
+            <motion.div
+              key="receivers-block"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="space-y-3 overflow-hidden"
+            >
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-400 pt-2">
+                <UserPlus className="w-4 h-4 text-emerald-400" />
+                Receiver Wallet Addresses
+                <span className="ml-auto text-xs text-gray-600 bg-dark-700 px-2 py-0.5 rounded-full">
+                  {receiverCount} of {splitWays} people
+                </span>
+              </label>
+
+              {receivers.map((addr, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -12 }}
+                  transition={{ duration: 0.2, delay: i * 0.05 }}
+                  className="flex items-center gap-2"
+                >
+                  {/* Receiver number badge */}
+                  <div className="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                    <span className="text-xs font-bold text-emerald-400">{i + 1}</span>
+                  </div>
+
+                  <input
+                    type="text"
+                    value={addr}
+                    onChange={(e) => updateReceiver(i, e.target.value)}
+                    placeholder={`G... (Receiver ${i + 1} Public Key)`}
+                    className={`flex-1 bg-dark-800 border rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/20 transition-all font-mono text-sm ${
+                      addr && !isValidStellarAddress(addr.trim())
+                        ? 'border-red-500/50 focus:border-red-500/50'
+                        : addr && isValidStellarAddress(addr.trim())
+                        ? 'border-emerald-500/40 focus:border-emerald-500/50'
+                        : 'border-dark-600 focus:border-emerald-500/50'
+                    }`}
+                    required
+                  />
+
+                  {/* Valid indicator */}
+                  {addr && isValidStellarAddress(addr.trim()) && (
+                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  )}
+                  {addr && !isValidStellarAddress(addr.trim()) && (
+                    <Trash2 className="w-4 h-4 text-red-400 shrink-0" />
+                  )}
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Submit */}
         <motion.button
           type="submit"
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
-          disabled={txStatus === TX_STATUS.BUILDING || txStatus === TX_STATUS.SIGNING || txStatus === TX_STATUS.SUBMITTING}
+          disabled={isProcessing}
           className="w-full mt-4 flex items-center justify-center gap-2 py-4 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-dark-950 font-bold text-base transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] border border-emerald-400/30 hover:border-emerald-300/60 disabled:opacity-50 cursor-pointer"
         >
-          {(txStatus === TX_STATUS.BUILDING || txStatus === TX_STATUS.SIGNING || txStatus === TX_STATUS.SUBMITTING) ? (
+          {isProcessing ? (
             <>
-               <Loader2 className="w-5 h-5 animate-spin" />
-               Processing...
+              <Loader2 className="w-5 h-5 animate-spin" />
+              {currentPayment > 0
+                ? `Sending to receiver ${currentPayment}/${receiverCount}...`
+                : 'Processing...'}
             </>
           ) : (
             <>
-               <Check className="w-5 h-5" />
-               Settle Payment Now
+              <Check className="w-5 h-5" />
+              {splitWays === 1
+                ? 'Record Expense'
+                : `Settle ${receiverCount} Payment${receiverCount > 1 ? 's' : ''} Now`}
             </>
           )}
         </motion.button>
