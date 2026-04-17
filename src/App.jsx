@@ -5,6 +5,7 @@ import BalanceCard from './components/BalanceCard';
 import ExpenseForm from './components/ExpenseForm';
 import ContractPanel from './components/ContractPanel';
 import LiveActivityFeed from './components/LiveActivityFeed';
+import AnimatedBackground from './components/AnimatedBackground';
 import { useEventStream } from './hooks/useEventStream';
 import { signTransactionWithWallet } from './services/stellar';
 
@@ -59,7 +60,8 @@ function App() {
   );
 
   return (
-    <div className="min-h-screen w-full bg-dark-950 bg-grid">
+    <div className="min-h-screen w-full bg-dark-950 relative">
+      <AnimatedBackground />
       <Navbar
         walletAddress={walletAddress}
         setWalletAddress={setWalletAddress}
